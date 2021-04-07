@@ -25,7 +25,11 @@ class RevisionIterator(object):
                 continue
 
             if prev_rev is not None and rev is not None:
-                yield (prev_rev, rev)
+                if prev_rev['page']['id'] == rev['page']['id']:
+                    yield (prev_rev, rev)
+                else:
+                    prev_rev = None
+                    rev = None
 
             if rev is not None:
                 prev_rev = rev
@@ -33,7 +37,7 @@ class RevisionIterator(object):
             next_rev['text'] = self.clean_markups(next_rev.get('text', ''))
             rev = next_rev
 
-        if prev_rev is not None and rev is not None:
+        if (prev_rev is not None and rev is not None) and (prev_rev['page']['id'] == rev['page']['id']):
             yield (prev_rev, rev)
 
     def clean_markups(self, text):

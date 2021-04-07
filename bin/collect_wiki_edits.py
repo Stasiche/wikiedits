@@ -9,10 +9,10 @@ from joblib import Parallel, delayed
 
 
 WIKIEDITS_DIR = os.path.abspath(os.path.dirname(__file__))
-WIKIEDITS_OPTIONS = "-m -l polish"
+WIKIEDITS_OPTIONS = "-m"
 
-JOBS = 4
-PARALLEL_VERBOSE = False
+JOBS = -1
+PARALLEL_VERBOSE = True
 
 
 def main():
@@ -26,11 +26,10 @@ def main():
 
     with open(args.dump_files) as files:
         for idx, file in enumerate(files):
-
-            jobs.append(delayed(process_dump_file) \
-                (file.strip(), args.work_dir, args.extra_options))
+            jobs.append(delayed(process_dump_file)(file.strip(), args.work_dir, args.extra_options))
 
     Parallel(n_jobs=args.jobs, verbose=PARALLEL_VERBOSE)(jobs)
+
 
 def process_dump_file(file, work_dir, options):
     debug("processing dump: {}".format(file))
@@ -59,6 +58,8 @@ def process_dump_file(file, work_dir, options):
         cmd = "cat"
     elif file_ext.startswith('.gz'):
         cmd = "zcat"
+    elif file_ext.startswith('.bz'):
+        cmd = "bzcat"
     else:
         debug("file extension {} not recognized!".format(file_ext))
         return False
@@ -75,6 +76,7 @@ def process_dump_file(file, work_dir, options):
 
 def debug(msg):
     print >> sys.stderr, msg
+
 
 def parse_user_args():
     parser = argparse.ArgumentParser(
