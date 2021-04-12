@@ -5,9 +5,10 @@ import sys
 
 class WikiDumpParser(object):
 
-    def __init__(self, filename):
+    def __init__(self, filename, max_rev_per_page):
         self.context = etree.iterparse(filename)
         self.important_tags = ['id', 'timestamp', 'comment', 'text', 'title']
+        self.max_rev_per_page = max_rev_per_page
 
     def page_iter(self):
         pass
@@ -15,39 +16,48 @@ class WikiDumpParser(object):
     def rev_iter(self):
         revision, page, contributor = {}, {}, {}
 
+        rev_per_page_cnt = 0
         for elem in self.__fast_iter():
             tag = self.__extract_tag(elem)
+            if rev_per_page_cnt <= self.max_rev_per_page:
+                if tag == 'id':
+                    if 'id' not in page: # page id
+                        page['id'] = elem.text
+                    elif 'id' not in revision: # revision id
+                        revision['id'] = elem.text
+                        rev_per_page_cnt += 1
+                    else: # user id
+                        contributor['id'] = elem.text
 
-            if tag == 'id':
-                if 'id' not in page: # page id
-                    page['id'] = elem.text
-                elif 'id' not in revision: # revision id
-                    revision['id'] = elem.text
-                else: # user id
-                    contributor['id'] = elem.text
+                elif tag in ['username', 'ip']:
+                    contributor[tag] = elem.text
 
-            elif tag in ['username', 'ip']:
-                contributor[tag] = elem.text
+                elif tag == 'contributor':
+                    revision['contributor'] = contributor
 
-            elif tag == 'contributor':
-                revision['contributor'] = contributor
+                elif tag == 'revision':
+                    revision['page'] = page
+                    yield revision
+                    revision = {}
+                    contributor = {}
 
-            elif tag == 'revision':
-                revision['page'] = page
-                yield revision
-                revision = {}
-                contributor = {}
+                elif tag == 'title':
+                    page['title'] = elem.text
 
-            elif tag == 'title':
-                page['title'] = elem.text
+                elif tag == 'page':
+                    page = {}
+                    revision = {}
+                    contributor = {}
+                    rev_per_page_cnt = 0
+
+                elif tag in self.important_tags:
+                    revision[tag] = elem.text
 
             elif tag == 'page':
                 page = {}
                 revision = {}
                 contributor = {}
-
-            elif tag in self.important_tags:
-                revision[tag] = elem.text
+                rev_per_page_cnt = 0
 
     def __fast_iter(self):
         """

@@ -10,8 +10,8 @@ HTML_TAG_REGEX = r'<[^>]{1,20}?>'
 
 class RevisionIterator(object):
 
-    def __init__(self, filename, lang='english'):
-        self.dump = WikiDumpParser(filename)
+    def __init__(self, filename, lang='english', max_rev_per_page=0):
+        self.dump = WikiDumpParser(filename, max_rev_per_page)
         self.vandalism_regex = re.compile(VANDALISM_REGEXES[lang],
                                           re.IGNORECASE)
 

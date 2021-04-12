@@ -5,8 +5,8 @@ from wikiedits.edit_extractor import EditExtractor
 
 class WikiEditExtractor(object):
 
-    def __init__(self, filename, **kwargs):
-        self.revision = RevisionIterator(filename, kwargs['lang'])
+    def __init__(self, filename, max_rev_per_page, **kwargs):
+        self.revision = RevisionIterator(filename, kwargs['lang'], max_rev_per_page)
         self.extractor = EditExtractor(**kwargs)
 
     def extract_edits(self):

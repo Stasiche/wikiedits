@@ -24,6 +24,7 @@ def main():
         set_logging_level('debug')
 
     wiki = WikiEditExtractor(args.input or sys.stdin,
+                             max_rev_per_page=args.max_rev_per_page,
                              lang=args.language,
                              min_words=args.min_words,
                              max_words=args.max_words,
@@ -100,6 +101,8 @@ def parse_user_args():
     group.add_argument("--edit-ratio", type=float, default=0.3,
                        help="set maximum relative difference in edit " \
                             "distance")
+    group.add_argument("--max-rev-per-page", type=int, default=0,
+                       help="set maximum revisions per page")
 
     args = parser.parse_args()
     if args.input == "<STDIN>":
